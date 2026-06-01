@@ -95,12 +95,11 @@ export const useInitApp = () => {
 
     setTitle(systemTitle || 'Sapply AI');
 
-    // log fastgpt
     if (!isPlus) {
       console.log(
         '%cWelcome to Sapply AI',
         'font-family:Arial; color:#3370ff ; font-size:18px; font-weight:bold;',
-        `GitHub：https://github.com/labring/FastGPT`
+        `https://sapply.cn`
       );
     }
 
