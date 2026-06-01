@@ -1,6 +1,6 @@
 import fs, { existsSync } from 'fs';
-import type { Sapply AIFeConfigsType } from '@fastgpt/global/common/system/types/index';
-import type { Sapply AIConfigFileType } from '@fastgpt/global/common/system/types/index';
+import type { FastGPTFeConfigsType } from '@fastgpt/global/common/system/types/index';
+import type { FastGPTConfigFileType } from '@fastgpt/global/common/system/types/index';
 import { getFastGPTConfigFromDB } from '@fastgpt/service/common/system/config/controller';
 import { isProduction } from '@fastgpt/global/common/system/constants';
 import { initFastGPTConfig } from '@fastgpt/service/common/system/tools';
@@ -113,7 +113,7 @@ export async function getInitConfig() {
   await Promise.all([initSystemConfig(), getSystemVersion()]);
 }
 
-const defaultFeConfigs: Sapply AIFeConfigsType = {
+const defaultFeConfigs: FastGPTFeConfigsType = {
   show_emptyChat: true,
   show_git: true,
   docUrl: 'https://doc.fastgpt.io',
@@ -123,7 +123,7 @@ const defaultFeConfigs: Sapply AIFeConfigsType = {
     'https://fael3z0zfze.feishu.cn/wiki/CX9wwMGyEi5TL6koiLYcg7U0nWb?fromScene=spaceOverview',
   systemTitle: 'Sapply AI',
   concatMd:
-    '项目开源地址: [Sapply AI GitHub](https://github.com/labring/Sapply AI)\n交流群: ![](https://oss.laf.run/otnvvf-imgs/fastgpt-feishu1.png)',
+    '项目开源地址: [Sapply AI GitHub](https://github.com/labring/FastGPT)\n交流群: ![](https://oss.laf.run/otnvvf-imgs/fastgpt-feishu1.png)',
   limit: {
     exportDatasetLimitMinutes: 0,
     websiteSyncLimitMinuted: 0,
@@ -145,10 +145,10 @@ export async function initSystemConfig() {
   ]);
   global.licenseData = licenseData;
 
-  const fileRes = json5.parse(fileConfig) as Sapply AIConfigFileType;
+  const fileRes = json5.parse(fileConfig) as FastGPTConfigFileType;
 
   // get config from database
-  const config: Sapply AIConfigFileType = {
+  const config: FastGPTConfigFileType = {
     feConfigs: {
       ...fileRes?.feConfigs,
       ...defaultFeConfigs,

@@ -2,7 +2,7 @@ import type { NextApiResponse } from 'next';
 import { type ApiRequestProps } from '@fastgpt/service/type/next';
 import { NextAPI } from '@/service/middleware/entry';
 import { authCert } from '@fastgpt/service/support/permission/auth/common';
-import type { Sapply AIFeConfigsType } from '@fastgpt/global/common/system/types';
+import type { FastGPTFeConfigsType } from '@fastgpt/global/common/system/types';
 import type { SubPlanType } from '@fastgpt/global/support/wallet/sub/type';
 import type { SystemDefaultModelType, SystemModelItemType } from '@fastgpt/service/core/ai/type';
 import type { AIProxyChannelsType, I18nStringStrictType } from '@fastgpt/global/sdk/fastgpt-plugin';
@@ -10,7 +10,7 @@ import type { AIProxyChannelsType, I18nStringStrictType } from '@fastgpt/global/
 export type InitDateResponse = {
   bufferId?: string;
 
-  feConfigs?: Sapply AIFeConfigsType;
+  feConfigs?: FastGPTFeConfigsType;
   subPlans?: SubPlanType;
   systemVersion?: string;
 

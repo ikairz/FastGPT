@@ -1,13 +1,13 @@
 import { getSystemInitData } from '@/web/common/system/api';
 import { delay } from '@fastgpt/global/common/system/utils';
-import type { Sapply AIFeConfigsType } from '@fastgpt/global/common/system/types/index';
+import type { FastGPTFeConfigsType } from '@fastgpt/global/common/system/types/index';
 
 import { useSystemStore } from './useSystemStore';
 
 export const clientInitData = async (
   retry = 3
 ): Promise<{
-  feConfigs: Sapply AIFeConfigsType;
+  feConfigs: FastGPTFeConfigsType;
 }> => {
   try {
     const res = await getSystemInitData(useSystemStore.getState().initDataBufferId);

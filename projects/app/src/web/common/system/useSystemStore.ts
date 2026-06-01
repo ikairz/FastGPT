@@ -9,7 +9,7 @@ import type {
   STTModelType
 } from '@fastgpt/global/core/ai/model.schema';
 import type { InitDateResponse } from '@/pages/api/common/system/getInitData';
-import { type Sapply AIFeConfigsType } from '@fastgpt/global/common/system/types';
+import { type FastGPTFeConfigsType } from '@fastgpt/global/common/system/types';
 import { type SubPlanType } from '@fastgpt/global/support/wallet/sub/type';
 import { ModelTypeEnum } from '@fastgpt/global/core/ai/constants';
 import type { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
@@ -53,7 +53,7 @@ type State = {
   setNotSufficientModalType: (val?: NotSufficientModalType) => void;
 
   initDataBufferId?: string;
-  feConfigs: Sapply AIFeConfigsType;
+  feConfigs: FastGPTFeConfigsType;
   subPlans?: SubPlanType;
   systemVersion: string;
 
@@ -129,7 +129,7 @@ export const useSystemStore = create<State>()(
         async loadGitStar() {
           if (!get().feConfigs?.show_git) return;
           try {
-            const { data: git } = await axios.get('https://api.github.com/repos/labring/Sapply AI');
+            const { data: git } = await axios.get('https://api.github.com/repos/labring/FastGPT');
 
             set((state) => {
               state.gitStar = git.stargazers_count;

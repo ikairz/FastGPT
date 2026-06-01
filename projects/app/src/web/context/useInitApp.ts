@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { clientInitData } from '@/web/common/system/staticData';
 import { useRouter } from 'next/router';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
-import type { Sapply AIFeConfigsType } from '@fastgpt/global/common/system/types/index';
+import type { FastGPTFeConfigsType } from '@fastgpt/global/common/system/types/index';
 import { useMemoizedFn, useMount } from 'ahooks';
 import { TrackEventName } from '../common/system/constants';
 import { useRequest } from '@fastgpt/web/hooks/useRequest';
@@ -65,7 +65,7 @@ export const useInitApp = () => {
 
   const { loadGitStar, setInitd, feConfigs } = useSystemStore();
   const { userInfo } = useUserStore();
-  const [scripts, setScripts] = useState<Sapply AIFeConfigsType['scripts']>([]);
+  const [scripts, setScripts] = useState<FastGPTFeConfigsType['scripts']>([]);
   const [title, setTitle] = useState(appClientEnv.systemName);
 
   const getPathWithoutMarketingParams = () => {
@@ -100,7 +100,7 @@ export const useInitApp = () => {
       console.log(
         '%cWelcome to Sapply AI',
         'font-family:Arial; color:#3370ff ; font-size:18px; font-weight:bold;',
-        `GitHub：https://github.com/labring/Sapply AI`
+        `GitHub：https://github.com/labring/FastGPT`
       );
     }
 

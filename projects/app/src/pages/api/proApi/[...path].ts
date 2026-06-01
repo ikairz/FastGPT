@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { jsonRes } from '@fastgpt/service/common/response';
-import { Sapply AIProUrl } from '@fastgpt/service/common/system/constants';
+import { FastGPTProUrl } from '@fastgpt/service/common/system/constants';
 import { buildSameOriginUrl } from '@fastgpt/service/common/security/network';
 import { Readable } from 'stream';
 
@@ -12,12 +12,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!requestPath) {
       throw new Error('url is empty');
     }
-    if (!Sapply AIProUrl) {
+    if (!FastGPTProUrl) {
       throw new Error(`未配置商业版链接: ${path}`);
     }
 
     // 防御 protocol-relative URL 覆盖主机(如 path 含空段 → `//169.254...`)
-    const targetUrl = buildSameOriginUrl(requestPath, Sapply AIProUrl);
+    const targetUrl = buildSameOriginUrl(requestPath, FastGPTProUrl);
 
     const headers: Record<string, string> = {};
     for (const [key, value] of Object.entries(req.headers)) {
