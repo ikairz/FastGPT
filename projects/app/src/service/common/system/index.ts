@@ -115,7 +115,7 @@ export async function getInitConfig() {
 
 const defaultFeConfigs: FastGPTFeConfigsType = {
   show_emptyChat: true,
-  show_git: true,
+  show_git: false,
   docUrl: 'https://doc.fastgpt.io',
   openAPIDocUrl: 'https://doc.fastgpt.io/openapi/intro',
   submitPluginRequestUrl: 'https://github.com/labring/fastgpt-plugin/issues',
