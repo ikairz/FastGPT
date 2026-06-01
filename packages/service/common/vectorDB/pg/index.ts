@@ -157,7 +157,6 @@ export class PgVectorCtrl implements VectorControllerType {
       `BEGIN;
           SET LOCAL hnsw.ef_search = ${global.systemEnv?.hnswEfSearch || 100};
           ${hnswMaxScanTuples ? `SET LOCAL hnsw.max_scan_tuples = ${hnswMaxScanTuples};` : ''}
-          SET LOCAL hnsw.iterative_scan = relaxed_order;
           WITH relaxed_results AS MATERIALIZED (
             select id, collection_id, vector <#> '[${vector}]' AS score
               from ${DatasetVectorTableName}
