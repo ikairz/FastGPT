@@ -66,7 +66,9 @@ export const PresignDatasetFilePostUrlBodySchema = z.object({
   datasetId: ObjectIdSchema.meta({
     example: '68ad85a7463006c963799a05',
     description: '目标知识库 ID'
-  })
+  }),
+  // Sapply: file size in bytes for storage quota check
+  fileSize: z.number().optional()
 });
 export type PresignDatasetFilePostUrlBody = z.infer<typeof PresignDatasetFilePostUrlBodySchema>;
 

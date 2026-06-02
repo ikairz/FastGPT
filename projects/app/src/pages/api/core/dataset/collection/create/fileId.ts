@@ -13,6 +13,7 @@ import { getS3DatasetSource } from '@fastgpt/service/common/s3/sources/dataset';
 import { isS3ObjectKey } from '@fastgpt/service/common/s3/utils';
 import { checkDatasetIndexLimit } from '@fastgpt/service/support/permission/teamLimit';
 import { parseApiInput } from '@fastgpt/service/common/zod/requestParseError';
+import { checkUserStorageQuota } from '@fastgpt/service/support/permission/storageQuota';
 
 async function handler(req: ApiRequestProps): Promise<CreateCollectionWithResultResponseType> {
   const { fileId, customPdfParse, ...body } = parseApiInput({
@@ -20,7 +21,7 @@ async function handler(req: ApiRequestProps): Promise<CreateCollectionWithResult
     bodySchema: CreateCollectionByFileIdBodySchema
   }).body;
 
-  const { teamId, tmbId, dataset } = await authDataset({
+  const { teamId, tmbId, dataset, userId } = await authDataset({
     req,
     authToken: true,
     authApiKey: true,
@@ -43,6 +44,16 @@ async function handler(req: ApiRequestProps): Promise<CreateCollectionWithResult
     insertLen: 1
   });
 
+  // Sapply: 从 MinIO metadata 拿到真实文件大小，做配额检查并存入 collection
+  const fileSize = metadata.contentLength || 0;
+  if (fileSize > 0) {
+    await checkUserStorageQuota({
+      userId: String(userId),
+      teamId: String(teamId),
+      fileSize
+    });
+  }
+
   return createCollectionAndInsertData({
     dataset,
     createCollectionParams: {
@@ -51,7 +62,8 @@ async function handler(req: ApiRequestProps): Promise<CreateCollectionWithResult
       tmbId,
       type: DatasetCollectionTypeEnum.file,
       name: metadata.filename,
-      fileId, // ObjectId -> ObjectKey
+      fileId,
+      fileSize,  // Sapply: store real file size for quota tracking
       customPdfParse
     }
   });

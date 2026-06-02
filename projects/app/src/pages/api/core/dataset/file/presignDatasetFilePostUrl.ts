@@ -12,11 +12,12 @@ import {
 } from '@fastgpt/global/openapi/core/dataset/file/api';
 import type { CreatePostPresignedUrlResponseType } from '@fastgpt/global/common/file/s3/type';
 import { parseApiInput } from '@fastgpt/service/common/zod/requestParseError';
+import { checkUserStorageQuota } from '@fastgpt/service/support/permission/storageQuota';
 
 async function handler(
   req: ApiRequestProps<PresignDatasetFilePostUrlBody>
 ): Promise<CreatePostPresignedUrlResponseType> {
-  const { filename, datasetId } = parseApiInput({
+  const { filename, datasetId, fileSize } = parseApiInput({
     req,
     bodySchema: PresignDatasetFilePostUrlBodySchema
   }).body;
@@ -29,11 +30,20 @@ async function handler(
     authApiKey: true
   });
 
+  // Sapply: 在生成上传URL前检查配额，此时能拿到真实 fileSize
+  if (fileSize) {
+    await checkUserStorageQuota({
+      userId: String(userId),
+      teamId: String(teamId),
+      fileSize
+    });
+  }
+
   const planStatus = await getTeamPlanStatus({ teamId });
   await authFrequencyLimit({
     eventId: `${userId}-uploadfile`,
     maxAmount: planStatus.standard?.maxUploadFileCount || global.feConfigs.uploadFileMaxAmount,
-    expiredTime: addSeconds(new Date(), 30) // 30s
+    expiredTime: addSeconds(new Date(), 30)
   });
 
   return getS3DatasetSource().createUploadDatasetFileURL({

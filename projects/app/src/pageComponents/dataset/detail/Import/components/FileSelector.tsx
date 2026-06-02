@@ -10,7 +10,6 @@ import { getNanoid } from '@fastgpt/global/common/string/tools';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { useUserStore } from '@/web/support/user/useUserStore';
 import type { ImportSourceItemType } from '@/web/core/dataset/type';
-import { useRequest } from '@fastgpt/web/hooks/useRequest';
 import { GET } from '@/web/common/api/request';
 
 export type SelectFileItemType = {
@@ -37,13 +36,13 @@ const FileSelector = ({
 
   // Sapply: 拉取当前用户存储配额
   const [storageUsage, setStorageUsage] = useState<{ usedBytes: number; limitBytes: number } | null>(null);
-  useRequest(
-    () => GET<{ usedBytes: number; limitBytes: number; limitMB: number }>('/support/user/storageUsage'),
-    {
-      onSuccess: (data) => setStorageUsage(data),
-      manual: false
-    }
-  );
+  const [storageLoading, setStorageLoading] = useState(true);
+  useEffect(() => {
+    GET<{ usedBytes: number; limitBytes: number; limitMB: number }>('/support/user/storageUsage')
+      .then((data) => setStorageUsage(data))
+      .catch(() => {})
+      .finally(() => setStorageLoading(false));
+  }, []);
 
   const [teamPlanReady, setTeamPlanReady] = useState(
     () => !!useUserStore.getState().teamPlanStatus
@@ -246,7 +245,7 @@ const FileSelector = ({
       borderWidth={'1.5px'}
       borderStyle={'dashed'}
       borderRadius={'md'}
-      {...(isMaxSelected || maxSize == null
+      {...(isMaxSelected || maxSize == null || storageLoading
         ? {}
         : {
             cursor: 'pointer',
@@ -270,7 +269,7 @@ const FileSelector = ({
             {t('file:reached_max_file_count')}
           </Box>
         </>
-      ) : maxSize == null ? (
+      ) : maxSize == null || storageLoading ? (
         <>
           <Box fontWeight={'bold'}>{t('common:Loading')}</Box>
           <Box color={'myGray.500'} fontSize={'xs'}>

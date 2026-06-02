@@ -69,7 +69,8 @@ const SelectFile = React.memo(function SelectFile() {
             try {
               const { url, key, headers, maxSize } = await getUploadDatasetFilePresignedUrl({
                 filename: file.name,
-                datasetId
+                datasetId,
+                fileSize: file.size  // Sapply: 传入文件大小用于服务端配额检查
               });
 
               // Upload File to S3
