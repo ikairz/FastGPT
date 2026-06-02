@@ -72,6 +72,12 @@ const DatasetCollectionSchema = new Schema({
   rawTextLength: Number,
   hashRawText: String,
 
+  // Sapply: uploaded file size in bytes, used for storage quota control
+  fileSize: {
+    type: Number,
+    default: 0
+  },
+
   metadata: {
     type: Object,
     default: {}

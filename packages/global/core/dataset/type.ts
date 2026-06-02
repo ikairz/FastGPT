@@ -145,6 +145,9 @@ export const DatasetCollectionSchema = ChunkSettingsSchema.omit({
   rawTextLength: z.number().optional().meta({ description: '原始文本长度' }),
   hashRawText: z.string().optional().meta({ description: '文本哈希' }),
 
+  // Sapply: uploaded file size in bytes
+  fileSize: z.number().optional().meta({ description: '上传文件大小（字节）' }),
+
   metadata: z.record(z.string(), z.any()).optional().meta({ description: '其他元数据' }),
 
   customPdfParse: z.boolean().optional().meta({ description: '自定义 PDF 解析' }),

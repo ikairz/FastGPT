@@ -13,6 +13,7 @@ import { getS3DatasetSource } from '@fastgpt/service/common/s3/sources/dataset';
 import { documentFileType } from '@fastgpt/global/common/file/constants';
 import { parseAllowedExtensions } from '@fastgpt/service/common/s3/utils/uploadConstraints';
 import { checkDatasetIndexLimit } from '@fastgpt/service/support/permission/teamLimit';
+import { checkUserStorageQuota } from '@fastgpt/service/support/permission/storageQuota';
 
 async function handler(req: ApiRequestProps): Promise<CreateCollectionWithResultResponseType> {
   const filepaths: string[] = [];
@@ -25,7 +26,7 @@ async function handler(req: ApiRequestProps): Promise<CreateCollectionWithResult
     });
     filepaths.push(result.fileMetadata.path);
 
-    const { teamId, tmbId, dataset } = await authDataset({
+    const { teamId, tmbId, dataset, userId } = await authDataset({
       req,
       authToken: true,
       authApiKey: true,
@@ -37,6 +38,13 @@ async function handler(req: ApiRequestProps): Promise<CreateCollectionWithResult
     await checkDatasetIndexLimit({
       teamId,
       insertLen: 1
+    });
+
+    // Sapply: check user storage quota before uploading
+    await checkUserStorageQuota({
+      userId: String(userId),
+      teamId: String(teamId),
+      fileSize: result.fileMetadata.size
     });
 
     const collectionData = CreateCollectionByLocalFileBodySchema.parse(result.data);
@@ -59,6 +67,8 @@ async function handler(req: ApiRequestProps): Promise<CreateCollectionWithResult
         tmbId,
         type: DatasetCollectionTypeEnum.file,
         fileId,
+        // Sapply: store file size for storage quota tracking
+        fileSize: result.fileMetadata.size,
         metadata: {
           ...collectionData.metadata,
           relatedImgId: fileId
