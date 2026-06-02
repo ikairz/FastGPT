@@ -6,18 +6,16 @@ import { getCollaboratorId } from '@fastgpt/global/support/permission/utils';
 import { isProVersion } from '../../../common/system/constants';
 import { MongoTeam } from '../../user/team/teamSchema';
 
-// Sapply: 根据模型 name 字段前缀过滤
-// 规则：name 以 "public-" 开头 → 所有人可见；以 "团队名-" 开头 → 仅该团队可见；无 "-" → 所有人可见（兼容旧数据）
+// Sapply: 根据模型ID前缀过滤
+// 规则：模型ID以 "public-" 开头 → 所有人可见；以 "团队名-" 开头 → 仅该团队可见；无 "-" → 所有人可见（兼容旧数据）
 async function filterModelsByTeamName(modelIds: string[], teamId: string): Promise<string[]> {
   const team = await MongoTeam.findById(teamId).lean();
   const teamName = team?.name || '';
   return modelIds.filter((modelId) => {
-    const model = global.systemModelList.find((m) => m.model === modelId);
-    if (!model) return false;
-    const name = model.name || '';
-    if (name.toLowerCase().startsWith('public-')) return true;
-    if (teamName && name.toLowerCase().startsWith(teamName.toLowerCase() + '-')) return true;
-    if (!name.includes('-')) return true;
+    const id = modelId.toLowerCase();
+    if (id.startsWith('public-')) return true;
+    if (teamName && id.startsWith(teamName.toLowerCase() + '-')) return true;
+    if (!modelId.includes('-')) return true;
     return false;
   });
 }
