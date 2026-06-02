@@ -20,10 +20,9 @@
  *   4. projects/app/src/pages/api/core/dataset/collection/create/localFile.ts (add quota check)
  */
 
-import { connectionMongo } from '../../common/mongo';
+import { Types } from 'mongoose';
 import { MongoUser } from '../../support/user/schema';
-
-const DatasetColCollectionName = 'dataset_collections';
+import { MongoDatasetCollection } from '../../core/dataset/collection/schema';
 
 /**
  * Get storage limit in bytes for a given username prefix.
@@ -57,24 +56,20 @@ export function getStorageLimitBytes(username: string): number {
  * Returns 0 if no data found.
  */
 export async function getTeamTotalFileSize(teamId: string): Promise<number> {
-  const { mongoose } = connectionMongo;
-  const result = await mongoose.connection
-    .collection(DatasetColCollectionName)
-    .aggregate([
-      {
-        $match: {
-          teamId: new mongoose.Types.ObjectId(teamId),
-          fileSize: { $gt: 0 }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: '$fileSize' }
-        }
+  const result = await MongoDatasetCollection.aggregate([
+    {
+      $match: {
+        teamId: new Types.ObjectId(teamId),
+        fileSize: { $gt: 0 }
       }
-    ])
-    .toArray();
+    },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: '$fileSize' }
+      }
+    }
+  ]);
 
   return result[0]?.total ?? 0;
 }
