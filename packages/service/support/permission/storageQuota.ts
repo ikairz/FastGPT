@@ -23,8 +23,6 @@
 import { connectionMongo } from '../../common/mongo';
 import { MongoUser } from '../../support/user/schema';
 
-const { mongoose } = connectionMongo;
-
 const DatasetColCollectionName = 'dataset_collections';
 
 /**
@@ -59,6 +57,7 @@ export function getStorageLimitBytes(username: string): number {
  * Returns 0 if no data found.
  */
 export async function getTeamTotalFileSize(teamId: string): Promise<number> {
+  const { mongoose } = connectionMongo;
   const result = await mongoose.connection
     .collection(DatasetColCollectionName)
     .aggregate([

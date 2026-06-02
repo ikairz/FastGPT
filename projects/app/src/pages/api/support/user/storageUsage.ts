@@ -24,11 +24,13 @@ async function handler(req: ApiRequestProps) {
 
   const limitBytes = getStorageLimitBytes(username);
   const usedBytes = await getTeamTotalFileSize(teamId);
+  // Sapply: Infinity 不能 JSON 序列化，统一用 -1 表示无限制
+  const safeLimitBytes = limitBytes === Infinity ? -1 : limitBytes;
 
   return {
     usedBytes,
-    limitBytes,
-    limitMB: limitBytes === -1 ? -1 : Math.round(limitBytes / 1024 / 1024)
+    limitBytes: safeLimitBytes,
+    limitMB: safeLimitBytes === -1 ? -1 : Math.round(safeLimitBytes / 1024 / 1024)
   };
 }
 
