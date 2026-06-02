@@ -32,7 +32,8 @@ export const createChatCompletion = async ({
     if (!modelData) {
       return Promise.reject(`${body.model} not found`);
     }
-    body.model = modelData.model;
+    // Sapply: defaultConfig.model 优先（用于模型ID映射，如 sales-deepseek-v4-pro → deepseek-v4-pro）
+    body.model = modelData.defaultConfig?.model || modelData.model;
 
     logger.debug('Start create chat completion', { model: body.model });
 
