@@ -662,6 +662,42 @@ const PriceTiersTable = React.memo(function PriceTiersTable({
   );
 });
 
+// Sapply: 模型映射字段，用于把模型ID映射成提供商真实模型名
+const FieldMapField = React.memo(function FieldMapField({
+  control,
+  setValue
+}: {
+  control: Control<SystemModelItemType>;
+  setValue: UseFormSetValue<SystemModelItemType>;
+}) {
+  const fieldMap = useWatch({
+    control,
+    name: 'fieldMap'
+  });
+
+  return (
+    <Field label={'模型映射'} tip={'将模型ID映射成提供商实际接受的模型名。例如：\n{\n  "sales-deepseek-v4-pro": "deepseek-v4-pro"\n}'} colSpan={[1, 2]}>
+      <JsonEditor
+        value={JSON.stringify(fieldMap || {}, null, 2)}
+        resize
+        onChange={(e) => {
+          if (!e) {
+            setValue('fieldMap', {}, { shouldDirty: true });
+            return;
+          }
+          try {
+            setValue('fieldMap', JSON.parse(e.trim()), { shouldDirty: true });
+          } catch (error) {
+            console.error(error);
+          }
+        }}
+        {...MultilineInputStyles}
+        pr={2.5}
+      />
+    </Field>
+  );
+});
+
 const DefaultConfigField = React.memo(function DefaultConfigField({
   control,
   setValue,
@@ -1213,6 +1249,10 @@ export const ModelEditModal = ({
                     : t('account_model:model.default_config_tip')
               }
             />
+          )}
+          {/* Sapply: 模型映射，社区版显示 */}
+          {(isLLMModel || isEmbeddingModel) && (
+            <FieldMapField control={control} setValue={setValue} />
           )}
           {isTTSModel && <VoicesField control={control} setValue={setValue} t={t} />}
           {CustomApi}
