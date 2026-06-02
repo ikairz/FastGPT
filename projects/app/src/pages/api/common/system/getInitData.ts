@@ -6,6 +6,8 @@ import type { FastGPTFeConfigsType } from '@fastgpt/global/common/system/types';
 import type { SubPlanType } from '@fastgpt/global/support/wallet/sub/type';
 import type { SystemDefaultModelType, SystemModelItemType } from '@fastgpt/service/core/ai/type';
 import type { AIProxyChannelsType, I18nStringStrictType } from '@fastgpt/global/sdk/fastgpt-plugin';
+import { MongoTeam } from '@fastgpt/service/support/user/team/teamSchema';
+import { MongoTeamMember } from '@fastgpt/service/support/user/team/teamMemberSchema';
 
 export type InitDateResponse = {
   bufferId?: string;
@@ -20,6 +22,26 @@ export type InitDateResponse = {
   aiproxyChannels?: AIProxyChannelsType;
 };
 
+// Sapply: 按团队名前缀过滤模型列表
+async function filterActiveModelsByTeam(
+  models: SystemModelItemType[],
+  userId: string,
+  isRoot: boolean
+): Promise<SystemModelItemType[]> {
+  if (isRoot) return models;
+  const member = await MongoTeamMember.findOne({ userId, role: 'owner' }).lean();
+  if (!member) return models;
+  const team = await MongoTeam.findById(member.teamId).lean();
+  const teamName = (team?.name || '').toLowerCase();
+  return models.filter((m) => {
+    const id = (m.model || '').toLowerCase();
+    if (id.startsWith('public-')) return true;
+    if (teamName && id.startsWith(teamName + '-')) return true;
+    if (!m.model.includes('-')) return true;
+    return false;
+  });
+}
+
 async function handler(
   req: ApiRequestProps<Record<string, never>, { bufferId?: string }>,
   res: NextApiResponse
@@ -27,8 +49,8 @@ async function handler(
   const { bufferId } = req.query;
 
   try {
-    await authCert({ req, authToken: true });
-    // If bufferId is the same as the current bufferId, return directly
+    const { userId, isRoot } = await authCert({ req, authToken: true });
+    // If bufferId is the same as the current bufferId, return directly (skip heavy reload but still filter models)
     if (bufferId && global.systemInitBufferId && global.systemInitBufferId === bufferId) {
       return {
         bufferId: global.systemInitBufferId,
@@ -37,12 +59,19 @@ async function handler(
       };
     }
 
+    // Sapply: 过滤模型列表
+    const activeModelList = await filterActiveModelsByTeam(
+      global.systemActiveDesensitizedModels,
+      userId,
+      isRoot
+    );
+
     return {
       bufferId: global.systemInitBufferId,
       feConfigs: global.feConfigs,
       subPlans: global.subPlans,
       systemVersion: global.systemVersion,
-      activeModelList: global.systemActiveDesensitizedModels,
+      activeModelList,
       defaultModels: global.systemDefaultModel,
       modelProviders: global.ModelProviderRawCache,
       aiproxyChannels: global.aiproxyChannelsCache
