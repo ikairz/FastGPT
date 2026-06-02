@@ -8,13 +8,23 @@ import {
 import { authUserPer } from '@fastgpt/service/support/permission/user/auth';
 import { updateTeam } from '@fastgpt/service/support/user/team/controller';
 import { ManagePermissionVal } from '@fastgpt/global/support/permission/constant';
+import { serviceEnv } from '@fastgpt/service/env';
 
 async function handler(req: ApiRequestProps): Promise<UpdateTeamResponseType> {
   const body = UpdateTeamBodySchema.parse(req.body);
 
   const { teamId } = await authUserPer({ req, authToken: true, per: ManagePermissionVal });
 
-  await updateTeam({ teamId, ...body });
+  // Sapply: 只有 root 可以修改团队名称
+  const updateBody = { ...body };
+  if (updateBody.name !== undefined) {
+    const rootkey = req.headers.rootkey as string;
+    if (!rootkey || rootkey !== serviceEnv.ROOT_KEY) {
+      delete updateBody.name;
+    }
+  }
+
+  await updateTeam({ teamId, ...updateBody });
 
   return UpdateTeamResponseSchema.parse({});
 }

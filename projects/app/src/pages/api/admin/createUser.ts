@@ -47,6 +47,10 @@ async function handler(req: ApiRequestProps<CreateUserBody>) {
   if (username.length < 3) {
     return Promise.reject(new Error('用户名至少3个字符'));
   }
+  // Sapply: 团队名只允许英文字母、数字、连字符，且不能以连字符开头或结尾
+  if (teamName && !/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/.test(teamName)) {
+    return Promise.reject(new Error('团队名只能包含英文字母、数字、连字符（-），且不能以连字符开头或结尾'));
+  }
 
   // 检查用户名是否已存在
   const existing = await MongoUser.findOne({ username });

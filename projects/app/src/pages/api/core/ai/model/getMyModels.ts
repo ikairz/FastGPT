@@ -44,7 +44,8 @@ async function handler(
   const models = await getMyModels({
     teamId,
     tmbId,
-    isTeamOwner: tmb.role === 'owner' || isRoot
+    isTeamOwner: tmb.role === 'owner' || isRoot,
+    isRoot
   });
 
   return {

@@ -78,7 +78,8 @@ async function handler(req: ApiRequestProps<CreateAppBodyType>) {
           await getMyModels({
             teamId,
             tmbId,
-            isTeamOwner: isRoot || tmb?.role === 'owner'
+            isTeamOwner: isRoot || tmb?.role === 'owner',
+            isRoot
           })
         );
 

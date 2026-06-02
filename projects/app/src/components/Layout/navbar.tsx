@@ -105,7 +105,7 @@ const Navbar = ({ unread }: { unread: number }) => {
               icon: 'support/config/configLight',
               activeIcon: 'support/config/configFill',
               link: '/config/tool',
-              activeLink: ['/config/tool', '/config/tool/marketplace']
+              activeLink: ['/config/tool', '/config/tool/marketplace', '/config/users']
             }
           ]
         : [])

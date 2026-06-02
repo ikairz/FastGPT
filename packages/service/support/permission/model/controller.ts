@@ -4,17 +4,37 @@ import { getOrgsByTmbId } from '../org/controllers';
 import { MongoResourcePermission } from '../schema';
 import { getCollaboratorId } from '@fastgpt/global/support/permission/utils';
 import { isProVersion } from '../../../common/system/constants';
+import { MongoTeam } from '../../user/team/teamSchema';
+
+// Sapply: 根据模型 name 字段前缀过滤
+// 规则：name 以 "public-" 开头 → 所有人可见；以 "团队名-" 开头 → 仅该团队可见；无 "-" → 所有人可见（兼容旧数据）
+async function filterModelsByTeamName(modelIds: string[], teamId: string): Promise<string[]> {
+  const team = await MongoTeam.findById(teamId).lean();
+  const teamName = team?.name || '';
+  return modelIds.filter((modelId) => {
+    const model = global.systemModelList.find((m) => m.model === modelId);
+    if (!model) return false;
+    const name = model.name || '';
+    if (name.toLowerCase().startsWith('public-')) return true;
+    if (teamName && name.toLowerCase().startsWith(teamName.toLowerCase() + '-')) return true;
+    if (!name.includes('-')) return true;
+    return false;
+  });
+}
 
 export const getMyModels = async ({
   teamId,
   tmbId,
-  isTeamOwner
+  isTeamOwner,
+  isRoot = false
 }: {
   teamId: string;
   tmbId: string;
   isTeamOwner: boolean;
+  isRoot?: boolean;
 }) => {
-  if (isTeamOwner || !isProVersion()) {
+  // Sapply: 只有 root 返回全集；普通用户（含团队 owner）按团队名前缀过滤
+  if (isRoot || !isProVersion()) {
     return global.systemModelList.map((m) => m.model);
   }
   const [groups, orgs] = await Promise.all([
@@ -35,7 +55,6 @@ export const getMyModels = async ({
     resourceType: PerResourceTypeEnum.model
   }).lean();
 
-  // 未配置权限的，默认是有权限
   const permissionConfiguredModelSet = new Set(rps.map((rp) => rp.resourceName));
   const unconfiguredModels = global.systemModelList.filter(
     (model) => !permissionConfiguredModelSet.has(model.model)
@@ -43,5 +62,6 @@ export const getMyModels = async ({
 
   const myModels = rps.filter((rp) => myIdSet.has(getCollaboratorId(rp)));
 
-  return [...unconfiguredModels.map((m) => m.model), ...myModels.map((m) => m.resourceName)];
+  const ids = [...unconfiguredModels.map((m) => m.model), ...myModels.map((m) => m.resourceName)];
+  return filterModelsByTeamName(ids, teamId);
 };
