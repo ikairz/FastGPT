@@ -3,7 +3,7 @@
  * POST /api/admin/createUser
  *
  * Header: rootkey: <ROOT_KEY from docker-compose.yml>
- * Body: { username: string, password: string }
+ * Body: { username: string, password: string, teamName?: string }
  *
  * Username prefix rules:
  *   N* = Normal user (50MB storage limit)
@@ -17,12 +17,11 @@ import { NextAPI } from '@/service/middleware/entry';
 import { type ApiRequestProps } from '@fastgpt/service/type/next';
 import { MongoUser } from '@fastgpt/service/support/user/schema';
 import { createDefaultTeam } from '@fastgpt/service/support/user/team/controller';
-import { connectionMongo } from '@fastgpt/service/common/mongo';
+import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 import { UserStatusEnum } from '@fastgpt/global/support/user/constant';
 import { serviceEnv } from '@fastgpt/service/env';
 import { ERROR_ENUM } from '@fastgpt/global/common/error/errorCode';
-
-const { startSession } = connectionMongo;
+import { hashStr } from '@fastgpt/global/common/string/tools';
 
 type CreateUserBody = {
   username: string;
@@ -64,16 +63,15 @@ async function handler(req: ApiRequestProps<CreateUserBody>) {
     S: '种子用户（不限存储）'
   };
 
-  const session = await startSession();
-  try {
-    session.startTransaction();
+  let userId = '';
 
-    // 创建用户（password 由 schema setter 自动 SHA256 加密）
+  await mongoSessionRun(async (session) => {
+    // 创建用户（手动 hash 密码，因为 create 数组形式需要）
     const [user] = await MongoUser.create(
       [
         {
           username,
-          password,
+          password: hashStr(password),
           status: UserStatusEnum.active,
           timezone: 'Asia/Shanghai',
           language: 'zh-CN'
@@ -82,27 +80,22 @@ async function handler(req: ApiRequestProps<CreateUserBody>) {
       { session }
     );
 
+    userId = String(user._id);
+
     // 创建默认团队
     await createDefaultTeam({
-      userId: String(user._id),
+      userId,
       teamName: teamName || `${username} 的团队`,
       session
     });
+  });
 
-    await session.commitTransaction();
-
-    return {
-      userId: user._id,
-      username: user.username,
-      userType: prefixDesc[prefix] || '普通用户（不限存储）',
-      message: `用户 "${username}" 创建成功`
-    };
-  } catch (error) {
-    await session.abortTransaction();
-    return Promise.reject(error);
-  } finally {
-    session.endSession();
-  }
+  return {
+    userId,
+    username,
+    userType: prefixDesc[prefix] || '普通用户（不限存储）',
+    message: `用户 "${username}" 创建成功`
+  };
 }
 
 export default NextAPI(handler);
