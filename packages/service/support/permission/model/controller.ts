@@ -31,9 +31,14 @@ export const getMyModels = async ({
   isTeamOwner: boolean;
   isRoot?: boolean;
 }) => {
-  // Sapply: 只有 root 返回全集；普通用户（含团队 owner）按团队名前缀过滤
-  if (isRoot || !isProVersion()) {
+  // Sapply: root 返回全集；普通用户按团队名前缀过滤（社区版也走过滤）
+  if (isRoot) {
     return global.systemModelList.map((m) => m.model);
+  }
+  // 社区版没有资源权限表，所有模型视为未配置权限，直接走团队名过滤
+  if (!isProVersion()) {
+    const allIds = global.systemModelList.map((m) => m.model);
+    return filterModelsByTeamName(allIds, teamId);
   }
   const [groups, orgs] = await Promise.all([
     getGroupsByTmbId({

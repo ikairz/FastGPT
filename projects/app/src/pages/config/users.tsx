@@ -30,6 +30,7 @@ import { serviceSideProps } from '@/web/common/i18n/utils';
 import { useUserStore } from '@/web/support/user/useUserStore';
 import { useRouter } from 'next/router';
 import { getErrText } from '@fastgpt/global/common/error/utils';
+import ConfigContainer from '@/pageComponents/config/ConfigContainer';
 
 type UserItem = {
   userId: string;
@@ -178,7 +179,8 @@ export default function UsersPage() {
   };
 
   return (
-    <Box p={6} maxW="900px" mx="auto">
+    <ConfigContainer>
+      <Box p={6} maxW="900px" mx="auto">
       <Flex mb={4} alignItems="center" justifyContent="space-between">
         <Box fontSize="xl" fontWeight="bold">用户管理</Box>
         <Flex gap={2}>
@@ -322,6 +324,7 @@ export default function UsersPage() {
         </ModalContent>
       </Modal>
     </Box>
+    </ConfigContainer>
   );
 }
 

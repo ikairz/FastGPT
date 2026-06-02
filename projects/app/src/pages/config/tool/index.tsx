@@ -20,6 +20,7 @@ import { useRouter } from 'next/router';
 import { getAdminSystemTools, putAdminUpdateToolOrder } from '@/web/core/plugin/admin/tool/api';
 import type { GetAdminSystemToolsResponseType } from '@fastgpt/global/openapi/core/plugin/admin/tool/api';
 import type { AdminSystemToolListItemType } from '@fastgpt/global/core/plugin/admin/tool/type';
+import ConfigContainer from '@/pageComponents/config/ConfigContainer';
 
 const SystemToolConfigModal = dynamic(
   () => import('@/pageComponents/config/tool/SystemToolConfigModal')
@@ -60,7 +61,8 @@ const ToolProvider = () => {
   );
 
   return (
-    <MyBox pt={4} pl={3} pr={8} isLoading={loadingTools}>
+    <ConfigContainer>
+      <MyBox pt={4} pl={3} pr={8} isLoading={loadingTools}>
       {/* Header */}
       <Flex alignItems={'center'}>
         <Box flex={'1'} overflow={'auto'} color={'myGray.900'}>
@@ -214,6 +216,7 @@ const ToolProvider = () => {
           />
         )}
     </MyBox>
+    </ConfigContainer>
   );
 };
 
