@@ -10,6 +10,8 @@ import { getNanoid } from '@fastgpt/global/common/string/tools';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { useUserStore } from '@/web/support/user/useUserStore';
 import type { ImportSourceItemType } from '@/web/core/dataset/type';
+import { useRequest } from '@fastgpt/web/hooks/useRequest';
+import { GET } from '@/web/common/api/request';
 
 export type SelectFileItemType = {
   fileId: string;
@@ -32,6 +34,16 @@ const FileSelector = ({
   const { toast } = useToast();
   const { feConfigs } = useSystemStore();
   const teamPlanStatus = useUserStore((s) => s.teamPlanStatus);
+
+  // Sapply: 拉取当前用户存储配额
+  const [storageUsage, setStorageUsage] = useState<{ usedBytes: number; limitBytes: number } | null>(null);
+  useRequest(
+    () => GET<{ usedBytes: number; limitBytes: number; limitMB: number }>('/support/user/storageUsage'),
+    {
+      onSuccess: (data) => setStorageUsage(data),
+      manual: false
+    }
+  );
 
   const [teamPlanReady, setTeamPlanReady] = useState(
     () => !!useUserStore.getState().teamPlanStatus
@@ -106,9 +118,28 @@ const FileSelector = ({
         });
       }
 
+      // Sapply: 存储配额累计检查（已用 + 本次已选 + 新选文件）
+      if (storageUsage && storageUsage.limitBytes !== -1) {
+        const alreadySelectedBytes = selectFiles.reduce((sum, f) => sum + (f.file?.size || 0), 0);
+        let accumulated = storageUsage.usedBytes + alreadySelectedBytes;
+        const passFiles: SelectFileItemType[] = [];
+        for (const f of filterFiles) {
+          if (accumulated + f.file.size > storageUsage.limitBytes) {
+            toast({
+              status: 'warning',
+              title: `存储配额不足，已用 ${formatFileSize(storageUsage.usedBytes)}，上限 ${formatFileSize(storageUsage.limitBytes)}，文件 "${f.file.name}" 超出限额`
+            });
+            break;
+          }
+          accumulated += f.file.size;
+          passFiles.push(f);
+        }
+        return onSelectFiles(passFiles);
+      }
+
       return onSelectFiles(filterFiles);
     },
-    [t, maxCount, maxSize, onSelectFiles, selectFiles.length, toast]
+    [t, maxCount, maxSize, onSelectFiles, selectFiles, toast, storageUsage]
   );
 
   const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
