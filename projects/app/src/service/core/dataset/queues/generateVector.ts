@@ -198,6 +198,15 @@ export async function generateVector(): Promise<any> {
           collectionId: data.collectionId,
           dataId: data.dataId
         });
+
+        // Sapply: 针对 NVIDIA NIM 的 RPM 限速（40 RPM 上限，留25%余量取2000ms间隔）
+        const embModel = getEmbeddingModel(data.dataset.vectorModel);
+        const isNvidiaModel =
+          embModel?.requestUrl?.includes('nvidia.com') ||
+          embModel?.provider?.toLowerCase().includes('nvidia');
+        if (isNvidiaModel) {
+          await delay(2000);
+        }
       } catch (err: any) {
         logger.error('Vector queue task failed', {
           error: err,
