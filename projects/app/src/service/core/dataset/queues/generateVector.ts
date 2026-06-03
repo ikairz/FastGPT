@@ -161,7 +161,7 @@ export async function generateVector(): Promise<any> {
         continue;
       }
 
-      // Sapply: 限速模型需要独占队列，如果当前已有限速任务在运行则跳过（任务会在锁释放后重新被取到）
+      // Sapply: 限速模型需要独占队列——在 while 循环内也检查，确保已进入的并发线程也能退出
       {
         const embModel = getEmbeddingModel(data.dataset.vectorModel);
         const vectorModelId = data.dataset.vectorModel?.toLowerCase() ?? '';
@@ -169,11 +169,14 @@ export async function generateVector(): Promise<any> {
           (embModel?.requestDelayMs ?? 0) > 0 ||
           vectorModelId.includes('nvidia') ||
           vectorModelId.includes('nim');
-        if (isRateLimited && (global as any).vectorRateLimitedRunning) {
-          // 释放 lockTime，让任务重新可被取到
-          await MongoDatasetTraining.updateOne({ _id: data._id }, { lockTime: new Date(0) });
-          await delay(500);
-          continue;
+        if (isRateLimited) {
+          if ((global as any).vectorRateLimitedRunning) {
+            // 已有限速任务在跑，把当前任务放回队列，本线程退出
+            await MongoDatasetTraining.updateOne({ _id: data._id }, { lockTime: new Date(0) });
+            break;
+          }
+          // 当前线程独占限速队列
+          (global as any).vectorRateLimitedRunning = true;
         }
       }
 
@@ -251,6 +254,9 @@ export async function generateVector(): Promise<any> {
     }
   } catch (error) {
     logger.error('Vector queue loop failed', { error });
+  } finally {
+    // 确保限速锁在线程退出时被释放
+    (global as any).vectorRateLimitedRunning = false;
   }
 
   if (reduceQueue()) {
