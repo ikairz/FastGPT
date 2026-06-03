@@ -223,6 +223,7 @@ export async function generateVector(): Promise<any> {
         const delayMs =
           embModel?.requestDelayMs ??
           (vectorModelId.includes('nvidia') || vectorModelId.includes('nim') ? 2000 : 0);
+        logger.info('Sapply rate limit check', { vectorModelId, requestDelayMs: embModel?.requestDelayMs, delayMs });
         if (delayMs > 0) {
           // 标记限速模型独占队列，阻止其他线程并发
           (global as any).vectorRateLimitedRunning = true;
