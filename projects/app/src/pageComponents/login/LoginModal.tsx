@@ -74,6 +74,25 @@ const LoginModal = ({ onSuccess }: LoginModalProps) => {
           <LoginContainer onSuccess={onSuccess} />
         </Flex>
       </Flex>
+
+      {/* Sapply: 备案信息 */}
+      <Box
+        position={'fixed'}
+        bottom={'12px'}
+        left={0}
+        right={0}
+        textAlign={'center'}
+        fontSize={'12px'}
+        color={'gray.400'}
+        zIndex={10}
+      >
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" style={{color: 'inherit', marginRight: '12px'}}>
+          闽ICP备2026016199号-1
+        </a>
+        <a href="https://beian.mps.gov.cn/#/query/webSearch?code=35020302037205" target="_blank" rel="noreferrer" style={{color: 'inherit'}}>
+          闽公网安备35020302037205号
+        </a>
+      </Box>
     </Flex>
   );
 };
