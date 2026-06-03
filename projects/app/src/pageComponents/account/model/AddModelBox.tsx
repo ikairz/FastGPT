@@ -1079,6 +1079,18 @@ export const ModelEditModal = ({
               />
             </Field>
             <Field
+              label={t('account_model:model.request_delay_ms')}
+              tip={t('account_model:model.request_delay_ms_tip')}
+            >
+              <MyNumberInput
+                register={register}
+                name="requestDelayMs"
+                min={0}
+                step={100}
+                {...NumberInputStyles}
+              />
+            </Field>
+            <Field
               label={t('account_model:model.default_token')}
               tip={t('account_model:model.default_token_tip')}
             >

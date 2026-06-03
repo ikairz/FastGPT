@@ -129,6 +129,8 @@
   "model.model_id_tip": "模型的唯一標識，也就是實際請求到服務商 model 的值，需要與 OneAPI 管道中的模型對應。",
   "model.normalization": "歸一化處理",
   "model.normalization_tip": "如果 Embedding API 未對向量值進行歸一化，可以啟用該開關，系統會進行歸一化處理。\n未歸一化的 API，表現為向量檢索得分會大於 1。",
+  "model.request_delay_ms": "請求間隔(ms)",
+  "model.request_delay_ms_tip": "每次向量化請求後的延遲時間（毫秒）。用於限速場景，例如 NVIDIA NIM Free Endpoint 限制 40 RPM 時，可填 2000。留空或填 0 表示不限速。",
   "model.output_price_tip": "語言模型輸出價格，如果設定了該項，則模型綜合價格會失效",
   "model.param_name": "參數名稱",
   "model.params_config_section": "參數配置",

@@ -105,6 +105,7 @@ export const EmbeddingModelItemSchema = PriceTypeSchema.extend(BaseModelItemSche
   vision: z.boolean().optional(), // Support image embedding
   normalization: z.boolean().optional(), // normalization processing
   batchSize: z.number().optional(), // batch request size
+  requestDelayMs: z.number().optional(), // delay between requests in ms, for rate-limited APIs
   defaultConfig: z.record(z.string(), z.any()).optional(), // post request config
   dbConfig: z.record(z.string(), z.any()).optional(), // Custom parameters for storage
   queryConfig: z.record(z.string(), z.any()).optional() // Custom parameters for query

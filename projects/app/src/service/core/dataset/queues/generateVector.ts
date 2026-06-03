@@ -81,6 +81,8 @@ export async function generateVector(): Promise<any> {
   const max = global.systemEnv?.vectorMaxProcess || 10;
   logger.debug('Vector queue size check', { queueSize: global.vectorQueueLen, max });
 
+  // 如果有限速模型正在运行，阻止新线程进入，确保限速模型串行执行
+  if ((global as any).vectorRateLimitedRunning) return;
   if (global.vectorQueueLen >= max) return;
   global.vectorQueueLen++;
 
@@ -159,6 +161,22 @@ export async function generateVector(): Promise<any> {
         continue;
       }
 
+      // Sapply: 限速模型需要独占队列，如果当前已有限速任务在运行则跳过（任务会在锁释放后重新被取到）
+      {
+        const embModel = getEmbeddingModel(data.dataset.vectorModel);
+        const vectorModelId = data.dataset.vectorModel?.toLowerCase() ?? '';
+        const isRateLimited =
+          (embModel?.requestDelayMs ?? 0) > 0 ||
+          vectorModelId.includes('nvidia') ||
+          vectorModelId.includes('nim');
+        if (isRateLimited && (global as any).vectorRateLimitedRunning) {
+          // 释放 lockTime，让任务重新可被取到
+          await MongoDatasetTraining.updateOne({ _id: data._id }, { lockTime: new Date(0) });
+          await delay(500);
+          continue;
+        }
+      }
+
       // auth balance
       if (!(await checkTeamAiPointsAndLock(data.teamId))) {
         continue;
@@ -199,17 +217,17 @@ export async function generateVector(): Promise<any> {
           dataId: data.dataId
         });
 
-        // Sapply: 针对 NVIDIA NIM 的 RPM 限速（40 RPM 上限，留25%余量取2000ms间隔）
-        // 用模型ID直接判断，因为UI动态添加的自定义模型不在 global.embeddingModelMap 里
+        // Sapply: 模型级 RPM 限速，通过模型配置的 requestDelayMs 控制
         const embModel = getEmbeddingModel(data.dataset.vectorModel);
         const vectorModelId = data.dataset.vectorModel?.toLowerCase() ?? '';
-        const isNvidiaModel =
-          vectorModelId.includes('nvidia') ||
-          vectorModelId.includes('nim') ||
-          embModel?.requestUrl?.includes('nvidia.com') ||
-          embModel?.provider?.toLowerCase().includes('nvidia');
-        if (isNvidiaModel) {
-          await delay(2000);
+        const delayMs =
+          embModel?.requestDelayMs ??
+          (vectorModelId.includes('nvidia') || vectorModelId.includes('nim') ? 2000 : 0);
+        if (delayMs > 0) {
+          // 标记限速模型独占队列，阻止其他线程并发
+          (global as any).vectorRateLimitedRunning = true;
+          await delay(delayMs);
+          (global as any).vectorRateLimitedRunning = false;
         }
       } catch (err: any) {
         logger.error('Vector queue task failed', {

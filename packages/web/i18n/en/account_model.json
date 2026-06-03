@@ -129,6 +129,8 @@
   "model.model_id_tip": "The unique identifier of the model, that is, the value of the actual request to the service provider model, needs to correspond to the model in the OneAPI channel.",
   "model.normalization": "Normalization processing",
   "model.normalization_tip": "If the Embedding API does not normalize vector values, the switch can be enabled and the system will normalize.\n\nUnnormalized APIs, which are represented by the vector search score greater than 1.",
+  "model.request_delay_ms": "Request delay (ms)",
+  "model.request_delay_ms_tip": "Delay in milliseconds after each embedding request. Use for rate-limited APIs, e.g. NVIDIA NIM Free Endpoint (40 RPM limit) → set 2000. Leave empty or 0 for no delay.",
   "model.output_price_tip": "The language model output price. If this item is configured, the model comprehensive price will be invalid.",
   "model.param_name": "Parameter name",
   "model.params_config_section": "Parameter config",
