@@ -124,9 +124,10 @@ const FileSelector = ({
         const passFiles: SelectFileItemType[] = [];
         for (const f of filterFiles) {
           if (accumulated + f.file.size > storageUsage.limitBytes) {
+            const totalSelected = alreadySelectedBytes + passFiles.reduce((s, x) => s + x.file.size, 0);
             toast({
               status: 'warning',
-              title: `存储配额不足，已用 ${formatFileSize(storageUsage.usedBytes)}，上限 ${formatFileSize(storageUsage.limitBytes)}，文件 "${f.file.name}" 超出限额`
+              title: `存储配额不足。已存 ${formatFileSize(storageUsage.usedBytes)}，本次已选 ${formatFileSize(totalSelected)}，上限 ${formatFileSize(storageUsage.limitBytes)}，新选择文件 "${f.file.name}" ${formatFileSize(f.file.size)} 超出限额`
             });
             break;
           }
