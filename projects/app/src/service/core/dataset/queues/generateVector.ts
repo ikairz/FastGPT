@@ -200,8 +200,12 @@ export async function generateVector(): Promise<any> {
         });
 
         // Sapply: 针对 NVIDIA NIM 的 RPM 限速（40 RPM 上限，留25%余量取2000ms间隔）
+        // 用模型ID直接判断，因为UI动态添加的自定义模型不在 global.embeddingModelMap 里
         const embModel = getEmbeddingModel(data.dataset.vectorModel);
+        const vectorModelId = data.dataset.vectorModel?.toLowerCase() ?? '';
         const isNvidiaModel =
+          vectorModelId.includes('nvidia') ||
+          vectorModelId.includes('nim') ||
           embModel?.requestUrl?.includes('nvidia.com') ||
           embModel?.provider?.toLowerCase().includes('nvidia');
         if (isNvidiaModel) {
